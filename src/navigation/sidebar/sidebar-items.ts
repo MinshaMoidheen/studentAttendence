@@ -15,6 +15,7 @@ import {
   Banknote,
   Gauge,
   GraduationCap,
+  UserCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -52,6 +53,11 @@ export const sidebarItems: NavGroup[] = [
         title: "Default",
         url: "/dashboard/default",
         icon: LayoutDashboard,
+      },
+      {
+        title: "Teachers",
+        url: "/dashboard/teachers",
+        icon: UserCheck,
       },
       {
         title: "CRM",
@@ -123,6 +129,7 @@ export const sidebarItems: NavGroup[] = [
         icon: ReceiptText,
         comingSoon: true,
       },
+
       {
         title: "Users",
         url: "/dashboard/coming-soon",

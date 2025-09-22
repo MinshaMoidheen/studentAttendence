@@ -1,24 +1,28 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useLoginMutation } from "@/store/api/auth-api";
 
 const FormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  password: z.string().min(3, { message: "Password must be at least 3 characters." }),
   remember: z.boolean().optional(),
 });
 
 export function LoginForm() {
   const router = useRouter();
+  const [login, { isLoading }] = useLoginMutation();
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -30,21 +34,24 @@ export function LoginForm() {
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
     try {
-      // Simulate login API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Set auth token cookie (in a real app, this would come from your API)
-      document.cookie = "auth-token=your-auth-token; path=/; max-age=86400";
-      
+      const result = await login({
+        email: data.email,
+        password: data.password,
+      }).unwrap();
+
       toast.success("Login successful!", {
         description: "Redirecting to dashboard...",
       });
-      
+
+      localStorage.setItem("userData", JSON.stringify(result.user));
+
       // Redirect to dashboard
       router.push("/dashboard");
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage =
+        (error as any)?.data?.message ?? (error as any)?.message ?? "Please check your credentials and try again.";
       toast.error("Login failed", {
-        description: "Please check your credentials and try again.",
+        description: errorMessage,
       });
     }
   };
@@ -103,8 +110,8 @@ export function LoginForm() {
             </FormItem>
           )}
         />
-        <Button className="w-full" type="submit">
-          Login
+        <Button className="w-full" type="submit" disabled={isLoading}>
+          {isLoading ? "Logging in..." : "Login"}
         </Button>
       </form>
     </Form>
